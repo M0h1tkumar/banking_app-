@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
@@ -253,6 +254,12 @@ export default function Home() {
                       <p className="text-white/60 text-xs">Balance</p>
                       <p className="text-white font-medium">{parseFloat(acc.balance).toLocaleString('en-US', { style: 'currency', currency: acc.currency })}</p>
                     </div>
+                    <Link 
+                      href={`/accounts/${acc.id}/statement`}
+                      className="text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg transition-colors border border-white/5"
+                    >
+                      Statement
+                    </Link>
                   </div>
                 </div>
               </div>

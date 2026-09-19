@@ -1,0 +1,247 @@
+openapi: 3.0.0
+info:
+  title: NeoBank API
+  description: API documentation for the NeoBank core banking simulation backend.
+  version: 1.0.0
+servers:
+  - url: http://localhost:4000/api
+    description: Local development server
+paths:
+  /auth/register:
+    post:
+      summary: Register a new customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, aadhaar, pan]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                aadhaar:
+                  type: string
+                pan:
+                  type: string
+      responses:
+        '201':
+          description: User created and KYC submitted
+  /auth/login:
+    post:
+      summary: Authenticate user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+  /auth/me:
+    get:
+      summary: Get current authenticated user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+  /accounts:
+    get:
+      summary: List all accounts for current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Array of accounts
+    post:
+      summary: Create a new account
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type:
+                  type: string
+                  enum: [SAVINGS, CURRENT]
+      responses:
+        '201':
+          description: Account created successfully
+  /accounts/{id}:
+    get:
+      summary: Get account details and recent transactions
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Account details object
+  /transfers:
+    post:
+      summary: Initiate a fund transfer
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fromAccountId, toAccountNumber, amount]
+              properties:
+                fromAccountId:
+                  type: string
+                  format: uuid
+                toAccountNumber:
+                  type: string
+                amount:
+                  type: number
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Transfer executed successfully
+  /statements/{accountId}:
+    get:
+      summary: Get statement data (Opening/Closing balances and transactions)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Statement data object
+  /statements/{accountId}/download:
+    get:
+      summary: Download statement as CSV
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: accountId
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: CSV file download
+          content:
+            text/csv: {}
+  /bank/kyc/pending:
+    get:
+      summary: List all pending KYC applications (BankOps only)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Array of pending KYC records
+  /bank/kyc/{id}/approve:
+    post:
+      summary: Approve a KYC application (BankOps only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: KYC approved and user activated
+  /bank/kyc/{id}/reject:
+    post:
+      summary: Reject a KYC application (BankOps only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: KYC rejected and user suspended
+  /bank/audit:
+    get:
+      summary: View system audit trail (BankOps only)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Array of audit logs
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
