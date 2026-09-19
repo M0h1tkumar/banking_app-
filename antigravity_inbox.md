@@ -1,0 +1,1 @@
+I approve the Implementation Plan. Please begin executing Sprint 0 for the banking app!

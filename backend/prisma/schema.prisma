@@ -1,0 +1,180 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  role          Role      @default(CUSTOMER)
+  status        UserStatus @default(PENDING_KYC)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  kyc           KycRecord?
+  accounts      Account[]
+  sessions      Session[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model KycRecord {
+  id            String      @id @default(cuid())
+  userId        String      @unique
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  aadhaar       String
+  pan           String
+  status        KycStatus   @default(SUBMITTED)
+  submittedAt   DateTime    @default(now())
+  reviewedAt    DateTime?
+  reviewedBy    String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("kyc_records")
+}
+
+model Account {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountNumber String        @unique
+  type          AccountType   @default(SAVINGS)
+  status        AccountStatus @default(PENDING)
+  balance       Decimal       @default(0)
+  currency      String        @default("INR")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  transactions  Transaction[] @relation("AccountTransactions")
+  sentTransfers Transfer[]    @relation("SentTransfers")
+  receivedTransfers Transfer[] @relation("ReceivedTransfers")
+
+  @@map("accounts")
+}
+
+model Transaction {
+  id              String            @id @default(cuid())
+  accountId       String
+  account         Account           @relation("AccountTransactions", fields: [accountId], references: [id], onDelete: Cascade)
+  type            TransactionType
+  amount          Decimal
+  balanceAfter    Decimal
+  description     String?
+  referenceId     String?           @unique
+  status          TransactionStatus @default(COMPLETED)
+  createdAt       DateTime          @default(now())
+
+  @@map("transactions")
+}
+
+model Transfer {
+  id              String           @id @default(cuid())
+  senderAccountId String
+  senderAccount   Account          @relation("SentTransfers", fields: [senderAccountId], references: [id], onDelete: Cascade)
+  receiverAccountId String
+  receiverAccount Account          @relation("ReceivedTransfers", fields: [receiverAccountId], references: [id], onDelete: Cascade)
+  amount          Decimal
+  status          TransferStatus   @default(PENDING)
+  description     String?
+  referenceId     String           @unique
+  createdAt       DateTime         @default(now())
+  completedAt     DateTime?
+
+  @@map("transfers")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  status    SessionStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sessions")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  actor     String
+  action    String
+  entity    String
+  entityId  String
+  oldValue  String?
+  newValue  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+enum Role {
+  CUSTOMER
+  BANK_OPERATIONS
+}
+
+enum UserStatus {
+  PENDING_KYC
+  KYC_SUBMITTED
+  ACTIVE
+  SUSPENDED
+}
+
+enum KycStatus {
+  SUBMITTED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum AccountType {
+  SAVINGS
+  CURRENT
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  FROZEN
+  CLOSED
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRANSFER_IN
+  TRANSFER_OUT
+  INTEREST
+  FEE
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+enum TransferStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+enum SessionStatus {
+  ACTIVE
+  EXPIRED
+  LOGGED_OUT
+}
