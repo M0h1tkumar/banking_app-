@@ -8,6 +8,7 @@ import transferRoutes from './routes/transfers';
 import statementRoutes from './routes/statements';
 import bankKycRoutes from './routes/bank/kyc';
 import bankAuditRoutes from './routes/bank/audit';
+import contactRoutes from './routes/contact';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use('/api/transfers', transferRoutes);
 app.use('/api/statements', statementRoutes);
 app.use('/api/bank/kyc', bankKycRoutes);
 app.use('/api/bank/audit', bankAuditRoutes);
+app.use('/api/contact', contactRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Banking API is running' });
