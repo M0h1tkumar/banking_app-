@@ -124,7 +124,7 @@ router.get('/:accountId/download', authenticate, async (req: any, res: any) => {
     statement.transactions.forEach((t) => {
       const date = new Date(t.createdAt).toISOString().split('T')[0];
       const type = t.type === 'TRANSFER_IN' ? 'Credit' : 'Debit';
-      const desc = `"${t.description.replace(/"/g, '""')}"`; // escape quotes
+      const desc = `"${(t.description || '').replace(/"/g, '""')}"`; // escape quotes
       const amount = parseFloat(t.amount.toString()).toFixed(2);
       const balance = parseFloat(t.balanceAfter.toString()).toFixed(2);
       
