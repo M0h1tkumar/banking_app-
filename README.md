@@ -15,19 +15,31 @@ NeoBank is a full-stack, automated banking application built with Next.js, Expre
 
 ## Testing Credentials & Roles
 
-To fully test the application, you will need two types of accounts:
+### Quick Demo Accounts
 
-### 1. Customer Account
-You can create a standard customer account directly from the frontend UI:
-- **Action**: Click "Register" on the homepage.
+If using the seeded database (`npm run db:seed` in `backend/`):
+
+| Role | Email | Password | Features / Access |
+| :--- | :--- | :--- | :--- |
+| **Customer** | `customer@neobank.com` | `password123` | Approved KYC, Savings Account (`1000000001`), ₹5,000 Balance, Fund Transfers, Statement CSV Export |
+| **Bank Admin** | `admin@neobank.com` | `password123` | Role `BANK_OPERATIONS`: Access to `/bank` (KYC Approvals, Rejections, Audit Logs) |
+
+---
+
+### Manual Account Creation
+
+If registering your own test accounts manually:
+
+#### 1. Customer Account
+- **Action**: Click "Register" on the frontend homepage.
 - **Role**: Automatically assigned `CUSTOMER`.
 - **Note**: After registering, you will be prompted to submit your KYC. You cannot transfer funds until a Bank Admin approves your KYC.
 
-### 2. Bank Admin Account (BankOps)
-To test the Bank Operations Dashboard (KYC Approvals & Audit Logs), you need an account with the `BANK_OPERATIONS` role. Since this role cannot be acquired via the public registration form, you must grant it manually via the database:
+#### 2. Bank Admin Account (BankOps)
+To test the Bank Operations Dashboard (KYC Approvals & Audit Logs), you need an account with the `BANK_OPERATIONS` role. Since this role cannot be acquired via the public registration form, you can grant it manually via the database or by running the seed script:
 
 1. Register a new account normally via the frontend (e.g., `admin@neobank.com`).
-2. Open your PostgreSQL database using Prisma Studio or your preferred SQL client:
+2. Open your database with Prisma Studio:
    ```bash
    cd backend
    npx prisma studio
