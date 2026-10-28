@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import ErrorBoundary from '../src/app/error';
 
 // Mock the Next.js Link component
